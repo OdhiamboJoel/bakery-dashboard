@@ -1,148 +1,141 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import ProtectedRoute from "@/components/ProtectedRoute"
 import { supabase } from "@/lib/supabase"
-import DashboardLayout from "@/components/DashboardLayout"
+
+// your components
 import AnalyticsCharts from "@/components/AnalyticsCharts"
-import SmartInsights from "@/components/SmartInsights"
 import Leaderboard from "@/components/Leaderboard"
-import LiveNotifications from "@/components/LiveNotifications"
+import AIInsights from "@/components/AIInsights"
 
 export default function AdminPage() {
-  const [profile, setProfile] = useState(null)
   const [logs, setLogs] = useState([])
-  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
+  // 📦 FETCH PRODUCTION LOGS
+  const fetchLogs = async () => {
+    const { data, error } = await supabase
+      .from("production_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
 
-      // 🔐 Get logged-in user
-      const { data: authData } = await supabase.auth.getUser()
-      const user = authData?.user
-
-      if (!user) {
-        window.location.href = "/login"
-        return
-      }
-
-      // 👤 Get profile (role check)
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single()
-
-      if (!profileData || profileData.role !== "admin") {
-        window.location.href = "/login"
-        return
-      }
-
-      setProfile(profileData)
-
-      // 📦 Fetch production logs
-      const { data: logsData } = await supabase
-        .from("production_logs")
-        .select("*")
-
-      setLogs(logsData || [])
-
-      // 👥 Fetch all users
-      const { data: usersData } = await supabase
-        .from("profiles")
-        .select("*")
-
-      setUsers(usersData || [])
-
-      setLoading(false)
-    }
-
-    loadData()
-  }, [])
-
-  const updateRole = async (userId, role) => {
-    await supabase
-      .from("profiles")
-      .update({ role })
-      .eq("id", userId)
-
-    // refresh users
-    const { data } = await supabase.from("profiles").select("*")
-    setUsers(data || [])
+    if (!error) setLogs(data || [])
+    setLoading(false)
   }
 
-  if (loading) return <p className="p-6">Loading dashboard...</p>
+  useEffect(() => {
+    fetchLogs()
+
+    // 🔄 realtime updates
+    const channel = supabase
+      .channel("admin-live-logs")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "production_logs",
+        },
+        () => {
+          fetchLogs()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   return (
-    <DashboardLayout role="admin">
+    <ProtectedRoute allowedRoles={["admin"]}>
 
-      <div className="space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 p-6">
 
         {/* HEADER */}
-        <div>
-          <h1 className="text-2xl font-bold">Admin Control Panel</h1>
-          <p className="text-gray-500">Manage system performance & users</p>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">
+            Admin Dashboard
+          </h1>
+          <p className="text-gray-500">
+            Bakery performance overview
+          </p>
         </div>
 
-         <LiveNotifications />
+        {/* STATS CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
-        {/* 📊 SMART INSIGHTS */}
-        <SmartInsights logs={logs} users={users} />
+          <div className="bg-white p-5 rounded-xl shadow">
+            <h2 className="text-sm text-gray-500">Total Logs</h2>
+            <p className="text-2xl font-bold">{logs.length}</p>
+          </div>
 
-        {/* 🏆 LEADERBOARD */}
-        <Leaderboard logs={logs} users={users} />
+          <div className="bg-white p-5 rounded-xl shadow">
+            <h2 className="text-sm text-gray-500">Active Workers</h2>
+            <p className="text-2xl font-bold">--</p>
+          </div>
 
-        {/* 📈 ANALYTICS */}
-        <AnalyticsCharts logs={logs} />
+          <div className="bg-white p-5 rounded-xl shadow">
+            <h2 className="text-sm text-gray-500">Production Status</h2>
+            <p className="text-green-600 font-semibold">Live</p>
+          </div>
 
-        {/* 👥 USER MANAGEMENT */}
-        <div className="bg-white/70 p-6 rounded-xl shadow">
-          <h2 className="font-bold mb-4">User Management</h2>
+        </div>
 
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-gray-500">
-                <th>Name</th>
-                <th>Role</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-t">
-                  <td className="py-2">{u.name || "No Name"}</td>
+          {/* CHARTS */}
+          <div className="lg:col-span-2 bg-white p-5 rounded-xl shadow">
+            <h2 className="font-semibold mb-4">📊 Analytics</h2>
 
-                  <td>
-                    <span className="px-2 py-1 text-xs bg-gray-100 rounded">
-                      {u.role}
-                    </span>
-                  </td>
+            <AnalyticsCharts logs={logs} />
+          </div>
 
-                  <td className="flex gap-2 py-2">
-                    <button
-                      onClick={() => updateRole(u.id, "admin")}
-                      className="px-2 py-1 text-xs bg-blue-100 rounded"
-                    >
-                      Admin
-                    </button>
+          <div className="mt-6 bg-white p-5 rounded-xl shadow">
+          <h2 className="font-semibold mb-4">🧠 AI Business Insights</h2>
 
-                    <button
-                      onClick={() => updateRole(u.id, "worker")}
-                      className="px-2 py-1 text-xs bg-green-100 rounded"
-                    >
-                      Worker
-                    </button>
-                  </td>
-                </tr>
+          <AIInsights logs={logs} />
+          </div>
+
+          {/* LEADERBOARD */}
+          <div className="bg-white p-5 rounded-xl shadow">
+            <h2 className="font-semibold mb-4">🏆 Leaderboard</h2>
+
+            <Leaderboard />
+          </div>
+
+        </div>
+
+        {/* LOGS SECTION */}
+        <div className="mt-6 bg-white p-5 rounded-xl shadow">
+          <h2 className="font-semibold mb-3">📦 Production Logs</h2>
+
+          {loading ? (
+            <p className="text-gray-500">Loading logs...</p>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+
+              {logs.map((log) => (
+                <div
+                  key={log.id}
+                  className="flex justify-between border-b py-2 text-sm"
+                >
+                  <span>{log.cakes} cakes</span>
+                  <span className="text-gray-500">
+                    {log.worker_phone}
+                  </span>
+                </div>
               ))}
-            </tbody>
-          </table>
+
+            </div>
+          )}
+
         </div>
 
       </div>
 
-    </DashboardLayout>
+    </ProtectedRoute>
   )
 }

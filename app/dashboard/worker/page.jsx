@@ -1,75 +1,44 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
-import DashboardLayout from "@/components/DashboardLayout"
+import ProtectedRoute from "@/components/ProtectedRoute"
 
 export default function WorkerPage() {
-  const [profile, setProfile] = useState(null)
-  const [logs, setLogs] = useState([])
-
-  useEffect(() => {
-    const load = async () => {
-      const { data: authData } = await supabase.auth.getUser()
-
-      if (!authData?.user) return
-
-      const userId = authData.user.id
-
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single()
-
-      if (!profileData || profileData.role !== "worker") {
-        window.location.href = "/login"
-        return
-      }
-
-      setProfile(profileData)
-
-      const { data: logData } = await supabase
-        .from("production_logs")
-        .select("*")
-        .eq("user_id", userId)
-
-      setLogs(logData || [])
-    }
-
-    load()
-  }, [])
-
-  if (!profile) return <p>Loading...</p>
-
-  const total = logs.reduce((sum, l) => sum + (l.cakes || 0), 0)
-
   return (
-    <DashboardLayout role="worker">
-      <div>
-        <h2>Welcome {profile.name || "Worker"} 👷</h2>
+    <ProtectedRoute allowedRoles={["worker", "admin"]}>
 
-        <div className="card">
-          <p>Role: {profile.role}</p>
-          <p>Total Cakes: {total}</p>
-          <p>Entries: {logs.length}</p>
+      <div className="min-h-screen bg-orange-50 p-6">
+
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">Worker Dashboard</h1>
+          <p className="text-gray-600">Track your production tasks</p>
         </div>
 
-        <div className="card">
-          <h3>Recent Production</h3>
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          {logs.length === 0 ? (
-            <p>No records yet</p>
-          ) : (
-            logs.map((log, i) => (
-              <p key={i}>
-                {log.cakes} cakes —{" "}
-                {new Date(log.created_at).toLocaleString()}
-              </p>
-            ))
-          )}
+          <div className="bg-white p-4 rounded-xl shadow">
+            <h2 className="font-semibold">My Production</h2>
+            <p className="text-gray-500 text-sm">Today's output</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow">
+            <h2 className="font-semibold">Performance</h2>
+            <p className="text-gray-500 text-sm">Efficiency tracking</p>
+          </div>
+
         </div>
+
+        {/* Logs Section */}
+        <div className="mt-6 bg-white p-4 rounded-xl shadow">
+          <h2 className="font-semibold mb-2">My Activity Logs</h2>
+          <p className="text-gray-400 text-sm">
+            Production history will appear here
+          </p>
+        </div>
+
       </div>
-    </DashboardLayout>
+
+    </ProtectedRoute>
   )
 }
