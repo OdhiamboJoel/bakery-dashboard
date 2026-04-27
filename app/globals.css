@@ -1,55 +1,142 @@
-@import "tailwindcss";
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+
+* {
+  min-width: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+
+/* softer page rhythm */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+} 
+
+/* soft section spacing */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* subtle text hierarchy */
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: rgba(180, 83, 9, 0.6);
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Global smoother feel */
+* {
+  border-radius: var(--radius-md);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Global background */
+body {
+  background: linear-gradient(180deg, #fff8f1 0%, #fffdf9 100%);
+  color: var(--bakery-text);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(217, 119, 6, 0.10), transparent 40%),
+    radial-gradient(circle at 80% 30%, rgba(251, 191, 36, 0.08), transparent 45%),
+    radial-gradient(circle at 50% 80%, rgba(245, 158, 11, 0.06), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(40px);
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Premium card style */
+.bakery-card {
+  background: #ffffff;
+  border: 1px solid #f3e2d2;
+  border-radius: 24px;
+  padding: 20px;
+
+  /* softer elevation (no harsh shadow edges) */
+  box-shadow:
+    0 8px 20px rgba(217, 119, 6, 0.06),
+    0 2px 6px rgba(0,0,0,0.04);
+
+  transition: all 0.3s ease;
+  transform-origin: center;
+  animation: fadeUp 0.4s ease both;
+  position: relative;
+  z-index: 1;
 }
 
-body {
-  background: #f8f3ea;
-  font-family: "Poppins", system-ui, sans-serif;
-  color: #3b2f2f;
+/* softer hover — more "float", less "lift" */
+.bakery-card:hover {
+ transform: translateY(-4px) scale(1.01);
+  box-shadow:
+    0 14px 30px rgba(217, 119, 6, 0.10),
+    0 4px 10px rgba(0,0,0,0.05);
 }
 
-h2 {
-  color: #5a3e2b;
-  margin-top: 20px;
-}
-
-.card {
-  background: #fffaf3;
-  border-radius: 16px;
+/* Smooth spacing system */
+.section {
   padding: 16px;
-  margin: 10px 0;
-  box-shadow: 0 4px 12px rgba(90, 62, 43, 0.08);
-  border: 1px solid #f0e6da;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+@media (min-width: 1024px) {
+  .section {
+    padding: 24px;
+  }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+/* Prevent overflow issues */
+.safe-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  word-wrap: break-word;
+}
+.recharts-wrapper {
+  border-radius: 18px;
+  position: relative !important;
+  z-index: 0;
+}
+p, h1, h2, h3, h4 {
+  line-height: 1.5;
+}
+
+.sidebar-sticky {
+  position: sticky;
+  top: 24px;
+}
+
+.chart-container {
+  width: 100%;
+  height: 300px;
+  position: relative;
 }
