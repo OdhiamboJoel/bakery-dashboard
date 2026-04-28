@@ -1,54 +1,29 @@
 @import "tailwindcss/preflight";
 @import "tailwindcss/utilities";
 
+/* -----------------------------
+   BASE RESET (SAFE VERSION)
+------------------------------*/
 * {
   min-width: 0;
   transition: background 0.2s ease, color 0.2s ease;
+  box-sizing: border-box;
 }
 
-
-/* softer page rhythm */
-.page-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
-} 
-
-/* soft section spacing */
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* IMPORTANT: avoid global border-radius on EVERYTHING */
+button,
+.bakery-card {
+  border-radius: 18px;
 }
 
-/* subtle text hierarchy */
-.title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #b45309;
-}
-
-.subtitle {
-  font-size: 12px;
-  color: rgba(180, 83, 9, 0.6);
-}
-
-:root {
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 24px;
-  --radius-xl: 28px;
-}
-
-/* Global smoother feel */
-* {
-  border-radius: var(--radius-md);
-}
-
-/* Global background */
+/* -----------------------------
+   BACKGROUND SYSTEM
+------------------------------*/
 body {
   background: linear-gradient(180deg, #fff8f1 0%, #fffdf9 100%);
-  color: var(--bakery-text);
+  color: #7c2d12;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  overflow-x: hidden;
 }
 
 body::before {
@@ -63,25 +38,56 @@ body::before {
   z-index: 0;
   filter: blur(40px);
 }
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+/* -----------------------------
+   LAYOUT HELPERS
+------------------------------*/
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding: 24px;
   }
 }
 
-/* Premium card style */
+/* -----------------------------
+   TYPOGRAPHY
+------------------------------*/
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: rgba(180, 83, 9, 0.6);
+}
+
+p, h1, h2, h3, h4 {
+  line-height: 1.5;
+}
+
+/* -----------------------------
+   CARD SYSTEM
+------------------------------*/
 .bakery-card {
   background: #ffffff;
   border: 1px solid #f3e2d2;
   border-radius: 24px;
-  padding: 20px;
+  padding: 24px;
 
-  /* softer elevation (no harsh shadow edges) */
   box-shadow:
     0 8px 20px rgba(217, 119, 6, 0.06),
     0 2px 6px rgba(0,0,0,0.04);
@@ -93,41 +99,39 @@ body::before {
   z-index: 1;
 }
 
-/* softer hover — more "float", less "lift" */
 .bakery-card:hover {
- transform: translateY(-4px) scale(1.01);
+  transform: translateY(-4px) scale(1.01);
   box-shadow:
     0 14px 30px rgba(217, 119, 6, 0.10),
     0 4px 10px rgba(0,0,0,0.05);
 }
 
-/* Smooth spacing system */
-.section {
-  padding: 16px;
+/* -----------------------------
+   FORMS (CRITICAL FIX AREA)
+------------------------------*/
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
 }
 
-@media (min-width: 1024px) {
-  .section {
-    padding: 24px;
-  }
+input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Prevent overflow issues */
+button {
+  font-family: inherit;
+}
+
+/* -----------------------------
+   UTILITIES
+------------------------------*/
 .safe-container {
   max-width: 100%;
   overflow-x: hidden;
-}
-
-* {
-  word-wrap: break-word;
-}
-.recharts-wrapper {
-  border-radius: 18px;
-  position: relative !important;
-  z-index: 0;
-}
-p, h1, h2, h3, h4 {
-  line-height: 1.5;
 }
 
 .sidebar-sticky {
@@ -139,4 +143,39 @@ p, h1, h2, h3, h4 {
   width: 100%;
   height: 300px;
   position: relative;
+}
+
+.recharts-wrapper {
+  border-radius: 18px;
+  position: relative !important;
+  z-index: 0;
+}
+
+.input-underline {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #fcd34d;
+  padding: 10px 0;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-underline:focus {
+  border-bottom: 1px solid #f59e0b;
+}
+
+/* -----------------------------
+   ANIMATIONS
+------------------------------*/
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
