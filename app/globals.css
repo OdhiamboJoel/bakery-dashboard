@@ -13,7 +13,7 @@
 /* IMPORTANT: avoid global border-radius on EVERYTHING */
 button,
 .bakery-card {
-  border-radius: 18px;
+  /* border-radius: 18px; */
 }
 
 /* -----------------------------
@@ -85,7 +85,7 @@ p, h1, h2, h3, h4 {
 .bakery-card {
   background: #ffffff;
   border: 1px solid #f3e2d2;
-  border-radius: 24px;
+  /* border-radius: 24px; */
   padding: 24px;
 
   box-shadow:
@@ -141,14 +141,16 @@ button {
 
 .chart-container {
   width: 100%;
-  height: 300px;
+  height: 280px;
   position: relative;
+  overflow: hidden; /* prevents overlap */
+  z-index: 1;
 }
-
 .recharts-wrapper {
-  border-radius: 18px;
+  width: 100% !important;
+  height: 100% !important;
   position: relative !important;
-  z-index: 0;
+  z-index: 1 !important;
 }
 
 .input-underline {

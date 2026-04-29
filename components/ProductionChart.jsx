@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@supabase/supabase-js"
 import {
-  LineChart, Line, XAxis, YAxis,
+  BarChart, Bar, XAxis, YAxis,
   Tooltip, ResponsiveContainer, CartesianGrid
 } from "recharts"
 
@@ -12,33 +12,32 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-export default function RevenueChart() {
+export default function ProductionChart() {
   const [data, setData] = useState([])
 
   const fetchData = useCallback(async () => {
     const { data: rows, error } = await supabase
-      .from("sales")
-      .select("amount, created_at")
+      .from("production_logs")
+      .select("mixes, crates, cakes")
 
     if (error || !rows) {
-      console.error("RevenueChart:", error)
+      console.error("ProductionChart:", error)
       return
     }
 
-    const grouped = {}
+    let mixes = 0, crates = 0, cakes = 0
 
     rows.forEach(r => {
-      const day = new Date(r.created_at)
-        .toLocaleDateString("en-KE", { weekday: "short" })
-
-      grouped[day] = (grouped[day] || 0) + (r.amount ?? 0)
+      mixes += r.mixes ?? 0
+      crates += r.crates ?? 0
+      cakes += r.cakes ?? 0
     })
 
-    const formatted = Object.entries(grouped).map(
-      ([day, revenue]) => ({ day, revenue })
-    )
-
-    setData(formatted)
+    setData([
+      { name: "Mixes", value: mixes },
+      { name: "Crates", value: crates },
+      { name: "Cakes", value: cakes },
+    ])
   }, [])
 
   useEffect(() => {
@@ -47,10 +46,10 @@ export default function RevenueChart() {
     let timeout
 
     const channel = supabase
-      .channel("rev-rt")
+      .channel("prod-rt")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "sales" },
+        { event: "*", schema: "public", table: "production_logs" },
         () => {
           clearTimeout(timeout)
           timeout = setTimeout(fetchData, 300)
@@ -66,13 +65,13 @@ export default function RevenueChart() {
 
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <LineChart data={data}>
+      <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="day" />
+        <XAxis dataKey="name" />
         <YAxis />
         <Tooltip />
-        <Line type="monotone" dataKey="revenue" stroke="#10b981" />
-      </LineChart>
+        <Bar dataKey="value" fill="#f59e0b" />
+      </BarChart>
     </ResponsiveContainer>
   )
 }
